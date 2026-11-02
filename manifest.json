@@ -5,7 +5,7 @@
   "version": "1.1.0",
   "minimum_chrome_version": "111",
   "homepage_url": "https://github.com/EmmanouelKontos/deepstack",
-  "description": "Precision full-stack technology profiler: 196+ signatures with versions & evidence trails, backend/DNS discovery, API endpoints, security grading, and design tokens.",
+  "description": "Inspect any website's full tech stack, framework versions, SSR/RSC internals, live DNS/CNAME, APIs, CSP, and security grade.",
   "permissions": [
     "activeTab",
     "scripting",
