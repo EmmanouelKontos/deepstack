@@ -1,0 +1,43 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#18191E"/>
+      <stop offset="100%" stop-color="#0B0C0E"/>
+    </linearGradient>
+    <linearGradient id="topFace" x1="36" y1="24" x2="92" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#B8BEC8"/>
+      <stop offset="100%" stop-color="#6E7480"/>
+    </linearGradient>
+    <linearGradient id="midFace" x1="36" y1="46" x2="92" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8A919E"/>
+      <stop offset="100%" stop-color="#4A505A"/>
+    </linearGradient>
+    <linearGradient id="rimGrad" x1="36" y1="40" x2="92" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#bgGrad)" stroke="#27272A" stroke-width="2"/>
+
+  <!-- Bottom Slab -->
+  <g transform="translate(0, 44)">
+    <polygon points="64,22 94,38 64,54 34,38" fill="url(#midFace)" stroke="#E4E4E7" stroke-width="2" stroke-linejoin="round"/>
+    <polygon points="34,38 64,54 64,65 34,49" fill="#323842" stroke="#38BDF8" stroke-width="1.6" stroke-linejoin="round"/>
+    <polygon points="64,54 94,38 94,49 64,65" fill="#181B20" stroke="#34D399" stroke-width="1.6" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Middle Slab -->
+  <g transform="translate(0, 22)">
+    <polygon points="64,22 94,38 64,54 34,38" fill="url(#midFace)" stroke="#F4F4F5" stroke-width="2" stroke-linejoin="round"/>
+    <polygon points="34,38 64,54 64,65 34,49" fill="#3B424E" stroke="#38BDF8" stroke-width="1.6" stroke-linejoin="round"/>
+    <polygon points="64,54 94,38 94,49 64,65" fill="#1E2229" stroke="#34D399" stroke-width="1.6" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Top Slab -->
+  <g>
+    <polygon points="64,22 94,38 64,54 34,38" fill="url(#topFace)" stroke="#FFFFFF" stroke-width="2.2" stroke-linejoin="round"/>
+    <polygon points="34,38 64,54 64,65 34,49" fill="#464E5C" stroke="#38BDF8" stroke-width="1.8" stroke-linejoin="round"/>
+    <polygon points="64,54 94,38 94,49 64,65" fill="#232730" stroke="#34D399" stroke-width="1.8" stroke-linejoin="round"/>
+  </g>
+</svg>

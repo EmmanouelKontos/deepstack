@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeepStack — Stack & Architecture Inspector</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Top Header -->
+    <header class="topbar">
+      <div class="brand">
+        <div id="brand-icon-box" class="brand-logo" aria-hidden="true"></div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <h1>DeepStack</h1>
+            <span id="host-pill" class="host-pill">Scanning…</span>
+          </div>
+          <p id="render-strategy-sub" class="brand-subtitle">Inspecting page architecture…</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button id="btn-theme" class="icon-btn" title="Switch Light / Dark theme" aria-label="Toggle theme"></button>
+        <button id="btn-copy-md" class="text-btn" title="Copy readable Markdown report">Copy Report</button>
+        <button id="btn-copy-json" class="text-btn" title="Copy raw JSON data">JSON</button>
+        <button id="btn-rescan" class="icon-btn" title="Re-scan current page" aria-label="Re-scan"></button>
+      </div>
+    </header>
+
+    <!-- Key Metrics Bar -->
+    <section id="summary-strip" class="summary-strip hidden">
+      <div class="metric-cell">
+        <span class="metric-label">Detected Stack</span>
+        <span id="metric-tech-count" class="metric-value">0 tools</span>
+      </div>
+      <div class="metric-cell">
+        <span class="metric-label">Response Speed</span>
+        <span id="metric-cache" class="metric-value">—</span>
+      </div>
+      <div class="metric-cell">
+        <span class="metric-label">Connection</span>
+        <span id="metric-protocol" class="metric-value">—</span>
+      </div>
+      <div class="metric-cell">
+        <span class="metric-label">Security Grade</span>
+        <span id="metric-security" class="metric-value">—</span>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="stack" role="tab">
+        <span>Stack</span>
+        <span id="tab-count-stack" class="tab-badge">0</span>
+      </button>
+      <button class="tab" data-tab="internals" role="tab">
+        <span>App Internals</span>
+      </button>
+      <button class="tab" data-tab="network" role="tab">
+        <span>Network & APIs</span>
+        <span id="tab-count-apis" class="tab-badge">0</span>
+      </button>
+      <button class="tab" data-tab="security" role="tab">
+        <span>Security</span>
+      </button>
+      <button class="tab" data-tab="design" role="tab">
+        <span>Design & SEO</span>
+      </button>
+    </nav>
+
+    <!-- Loading & Error States -->
+    <div id="state-loading" class="state-box">
+      <div class="spinner"></div>
+      <p class="state-title">Analyzing website architecture</p>
+      <p class="state-desc">Inspecting framework runtime, HTTP headers, cookies, network requests, and styles…</p>
+    </div>
+
+    <div id="state-error" class="state-box hidden">
+      <div id="error-icon-holder" class="error-icon-box"></div>
+      <p id="error-message" class="state-title">Unable to inspect this page</p>
+      <p class="state-desc">Browser security restricts extensions from running on internal <code>brave://</code>, <code>chrome://</code>, or Web Store pages. Open any standard website to inspect its tech stack.</p>
+    </div>
+
+    <!-- Main Scrollable Content -->
+    <main id="main-content" class="content hidden">
+      <!-- TAB 1: OVERVIEW & TECH STACK -->
+      <section id="panel-stack" class="tab-panel active">
+        <!-- Plain-English Summary Card -->
+        <div id="overview-card" class="overview-card"></div>
+
+        <!-- Search & Proof Toggle -->
+        <div class="toolbar-row">
+          <div class="search-wrap">
+            <span id="search-icon-holder" class="search-icon"></span>
+            <input
+              type="search"
+              id="search-input"
+              class="search-input"
+              placeholder="Search technologies, categories, or roles (press /)…"
+              autocomplete="off"
+            />
+          </div>
+          <button id="btn-toggle-evidence" class="btn-subtle" title="Show or hide technical detection proof for all items">
+            Technical Proof
+          </button>
+        </div>
+
+        <div id="stack-categories-container" class="stack-list"></div>
+      </section>
+
+      <!-- TAB 2: APP INTERNALS -->
+      <section id="panel-internals" class="tab-panel">
+        <div id="internals-container" class="panel-sections"></div>
+      </section>
+
+      <!-- TAB 3: NETWORK & APIS -->
+      <section id="panel-network" class="tab-panel">
+        <div id="network-container" class="panel-sections"></div>
+      </section>
+
+      <!-- TAB 4: SECURITY & PRIVACY -->
+      <section id="panel-security" class="tab-panel">
+        <div id="security-container" class="panel-sections"></div>
+      </section>
+
+      <!-- TAB 5: DESIGN & SEO -->
+      <section id="panel-design" class="tab-panel">
+        <div id="design-container" class="panel-sections"></div>
+      </section>
+    </main>
+
+    <!-- Footer with GitHub & Buy Me a Coffee Support -->
+    <footer class="app-footer">
+      <span class="footer-meta">DeepStack v1.1.0 · Local &amp; Open Source</span>
+      <div class="footer-actions">
+        <a
+          id="link-github"
+          class="footer-link"
+          href="https://github.com/EmmanouelKontos/deepstack"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Star or contribute on GitHub"
+        >
+          <span id="github-icon-holder" class="footer-icon"></span>
+          <span>GitHub</span>
+        </a>
+        <a
+          id="link-coffee"
+          class="sponsor-btn"
+          href="https://buymeacoffee.com/emmanouilkontos"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Support DeepStack development on Buy Me a Coffee"
+        >
+          <span id="coffee-icon-holder" class="footer-icon"></span>
+          <span>Buy Me a Coffee</span>
+        </a>
+      </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">Copied to clipboard</div>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
