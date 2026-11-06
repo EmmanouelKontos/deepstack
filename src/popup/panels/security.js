@@ -11,6 +11,17 @@ export function gradeTone(grade) {
 }
 
 function gradeCard(sec) {
+  if (sec.headersMissing) {
+    return `
+      <section class="grade-card" data-tone="muted">
+        <div class="grade-letter" aria-label="No grade">?</div>
+        <div class="grade-body">
+          <p class="grade-title">No response headers captured</p>
+          <p class="grade-meta">The server's headers couldn't be read, so the checks below aren't reliable.</p>
+          <button class="btn btn-sm" type="button" data-action="reload-page" style="margin-top:8px">Reload page for a grade</button>
+        </div>
+      </section>`;
+  }
   const checks = sec.checks || [];
   const passed = checks.filter((c) => c.status === 'pass').length;
   const fixes = checks.filter((c) => c.fix && c.status !== 'info').length;

@@ -1,7 +1,7 @@
 import { analyzeFullStack } from '../engine/analyzer.js';
 import { inspectDnsInfrastructure } from '../engine/dns-inspector.js';
 import { getSettings } from '../shared/settings.js';
-import { buildHeaderMap, captureResponse, forgetTab, getTabEntry } from './tab-store.js';
+import { buildHeaderMap, captureResponse, forgetTab, getTabEntryForUrl } from './tab-store.js';
 
 /**
  * DeepStack background service worker (Manifest V3)
@@ -22,6 +22,8 @@ try {
 }
 
 chrome.tabs.onRemoved.addListener((tabId) => forgetTab(tabId));
+// When a tab is swapped for another (instant/prerender replacement), the old ID is gone for good.
+chrome.tabs.onReplaced.addListener((_addedTabId, removedTabId) => forgetTab(removedTabId));
 
 class RestrictedPageError extends Error {
   constructor(message) {
@@ -113,7 +115,7 @@ function updateBadge(tabId, count) {
  */
 async function buildReport(tabId, { snapshot = null, withNetworkLookups = false } = {}) {
   const page = snapshot || (await collectSnapshot(tabId));
-  const entry = await getTabEntry(tabId);
+  const entry = await getTabEntryForUrl(tabId, page.url);
   const settings = withNetworkLookups ? await getSettings() : { dnsLookups: false };
   const needsFallback = withNetworkLookups && Object.keys(entry.mainHeaders).length === 0;
 
@@ -123,14 +125,18 @@ async function buildReport(tabId, { snapshot = null, withNetworkLookups = false 
     settings.dnsLookups ? inspectDnsInfrastructure(page.hostname) : null
   ]);
 
+  const headers = buildHeaderMap(entry, fallbackHeaders);
   const report = analyzeFullStack({
     snapshot: page,
-    headers: buildHeaderMap(entry, fallbackHeaders),
+    headers,
     cookies,
     observedUrls: Array.from(entry.observed),
     dnsInfo
   });
-  report.headerSource = Object.keys(entry.mainHeaders).length > 0 ? 'captured' : needsFallback ? 'fallback' : 'none';
+  const hasHeaders = Object.keys(headers).some((k) => k !== 'set-cookie');
+  report.headerSource = Object.keys(entry.mainHeaders).length > 0 ? 'captured' : hasHeaders ? 'fallback' : 'none';
+  // Without headers every header check "fails"; don't present that as a real F grade.
+  report.securityAudit.headersMissing = !hasHeaders;
   report.dnsLookupEnabled = settings.dnsLookups;
 
   updateBadge(tabId, report.totalDetected);

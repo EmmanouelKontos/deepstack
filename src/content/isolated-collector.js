@@ -4,13 +4,25 @@
  * computed design system (color palette & typography), and bridges with the Main-World Probe.
  */
 (function () {
-  if (window.__DEEPSTACK_ISOLATED_LOADED__) return;
-  window.__DEEPSTACK_ISOLATED_LOADED__ = true;
+  // Generation counter instead of a "loaded" flag: after the extension is reloaded or updated, the
+  // old script is orphaned (it can no longer receive messages) but its window globals can survive.
+  // A plain flag would then stop the re-injected script from registering, breaking already-open tabs.
+  // Only the newest generation answers requests.
+  const generation = (window.__DEEPSTACK_ISOLATED_GEN__ || 0) + 1;
+  window.__DEEPSTACK_ISOLATED_GEN__ = generation;
+  const isCurrent = () => window.__DEEPSTACK_ISOLATED_GEN__ === generation;
 
+  const MAX_PROBE_BYTES = 1_500_000;
   let latestMainProbe = null;
 
   function sanitizeMainProbePayload(raw) {
     if (!raw || typeof raw !== 'object') return null;
+    try {
+      // The page can post a spoofed payload; cap its size so it can't bloat messaging or storage.
+      if (JSON.stringify(raw).length > MAX_PROBE_BYTES) return null;
+    } catch {
+      return null;
+    }
     const cleanSignals = Object.create(null);
     if (raw.jsSignals && typeof raw.jsSignals === 'object') {
       const entries = Object.entries(raw.jsSignals).slice(0, 150);
@@ -528,7 +540,7 @@
 
   // Listen for requests from background service worker or popup
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-    if (msg && msg.type === 'DEEPSTACK_COLLECT_PAGE') {
+    if (msg && msg.type === 'DEEPSTACK_COLLECT_PAGE' && isCurrent()) {
       collectFullPageSnapshot(false)
         .then((snapshot) => sendResponse({ ok: true, snapshot }))
         .catch((err) => sendResponse({ ok: false, error: String(err) }));
