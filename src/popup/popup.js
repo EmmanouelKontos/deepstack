@@ -77,7 +77,9 @@ function renderMetrics(r) {
       ? `<span class="dot" data-tone="${SPEED_TONE[net.speedRating] || 'muted'}"></span>${esc(formatMs(net.ttfbMs))}`
       : '<span class="dim">n/a</span>';
   $('m-proto').textContent = (net.protocol || 'http').toUpperCase();
-  $('m-sec').innerHTML = `<span class="grade-chip" data-tone="${gradeTone(sec.grade)}">${esc(sec.grade || '—')}</span><span class="dim">${sec.score ?? 0}/100</span>`;
+  $('m-sec').innerHTML = sec.headersMissing
+    ? '<span class="dim">No headers</span>'
+    : `<span class="grade-chip" data-tone="${gradeTone(sec.grade)}">${esc(sec.grade || '—')}</span><span class="dim">${sec.score ?? 0}/100</span>`;
   $('count-stack').textContent = String(r.totalDetected);
   $('count-network').textContent = String((net.apiEndpoints?.length || 0) + (net.dormantCspHosts?.length || 0)) || '';
 }

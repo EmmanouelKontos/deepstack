@@ -29,7 +29,7 @@ export function toMarkdown(report) {
       line('Rendering', report.internals?.frameworkInternals?.renderingStrategy),
       line('Protocol', (net.protocol || '').toUpperCase()),
       line('Server response (TTFB)', typeof net.ttfbMs === 'number' ? `${net.ttfbMs} ms` : null),
-      line('Security grade', sec.grade ? `${sec.grade} (${sec.score}/100)` : null),
+      line('Security grade', sec.headersMissing ? 'n/a (no response headers captured)' : sec.grade ? `${sec.grade} (${sec.score}/100)` : null),
       line('Technologies detected', report.totalDetected)
     ].filter(Boolean),
     ''

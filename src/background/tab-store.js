@@ -28,7 +28,10 @@ const INTERESTING_SUB_HEADERS = new Set([
   'x-nextjs-cache'
 ]);
 
+const MAX_PRERENDERS_PER_TAB = 4;
+
 const memory = new Map();
+const prerenders = new Map();
 const loading = new Map();
 const persistTimers = new Map();
 
@@ -117,6 +120,10 @@ export function getTabEntry(tabId) {
 /** webRequest.onHeadersReceived handler. */
 export function captureResponse(details) {
   if (details.tabId < 0) return;
+  if (details.documentLifecycle === 'prerender') {
+    capturePrerender(details);
+    return;
+  }
 
   if (details.type === 'main_frame') {
     const entry = emptyEntry(details.url);
@@ -163,7 +170,46 @@ export function buildHeaderMap(entry, fallbackHeaders = null) {
   return merged;
 }
 
+/**
+ * Prerendered documents (Speculation Rules) load inside the same tab before the user navigates.
+ * Their responses are kept aside, keyed by documentId, so they never overwrite the page being viewed.
+ * Activation fires no new request, so the popup looks them up by URL instead.
+ */
+function capturePrerender(details) {
+  let docs = prerenders.get(details.tabId);
+  if (!docs) prerenders.set(details.tabId, (docs = new Map()));
+  if (details.type === 'main_frame') {
+    const entry = emptyEntry(details.url);
+    for (const h of details.responseHeaders || []) {
+      if (!h.name || h.value === undefined) continue;
+      if (h.name.toLowerCase() === 'set-cookie') entry.setCookieNames.add(cookieName(h.value));
+      else setSafe(entry.mainHeaders, h.name, h.value);
+    }
+    docs.set(details.documentId, entry);
+    while (docs.size > MAX_PRERENDERS_PER_TAB) docs.delete(docs.keys().next().value);
+    return;
+  }
+  const entry = docs.get(details.documentId);
+  if (entry && details.url && entry.observed.size < MAX_OBSERVED_URLS) entry.observed.add(details.url.slice(0, MAX_URL_LENGTH));
+}
+
+/** Entry for what the tab is showing now: the captured page, or a prerender that has since been activated. */
+export async function getTabEntryForUrl(tabId, pageUrl) {
+  const entry = await getTabEntry(tabId);
+  if (!pageUrl || entry.url === pageUrl) return entry;
+  for (const [docId, pre] of prerenders.get(tabId) || []) {
+    if (pre.url === pageUrl) {
+      prerenders.get(tabId).delete(docId);
+      memory.set(tabId, pre);
+      schedulePersist(tabId, 0);
+      return pre;
+    }
+  }
+  return entry;
+}
+
 export function forgetTab(tabId) {
+  prerenders.delete(tabId);
   memory.delete(tabId);
   loading.delete(tabId);
   clearTimeout(persistTimers.get(tabId));
