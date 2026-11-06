@@ -73,9 +73,18 @@ DeepStack is free and open source: https://github.com/EmmanouelKontos/deepstack
 v1.2.0 addresses the Yellow Argon (keyword spam) violation: the detailed description has been rewritten to describe functionality by category and no longer lists third-party brand names. No permissions were added.
 ```
 
-## Screenshots
+## Graphic assets
 
-The current 1280×800 screenshot is a mock-up of the v1.1 UI. Replace it with
-real captures of the v1.2 popup, because Google requires screenshots to show
-the actual product. Avoid adding headline claims or lists of brand names to
-the image.
+All images are in [`images/`](images/) and match the sizes in Google's
+[image guidelines](https://developer.chrome.com/docs/webstore/images).
+
+| Dashboard field | File | Size |
+| :-- | :-- | :-- |
+| Store icon | `store-icon-128.png` | 128×128 PNG, 96×96 artwork with transparent padding |
+| Small promo tile | `promo-small-440x280.png` | 440×280, 24-bit PNG, no alpha |
+| Marquee promo tile | `promo-marquee-1400x560.png` | 1400×560, 24-bit PNG, no alpha |
+| Screenshots (in this order) | `screenshot-stack.png`, `screenshot-internals.png`, `screenshot-network.png`, `screenshot-security.png`, `screenshot-design.png` | 1280×800 |
+
+The screenshots are real captures of the v1.2 popup inspecting a live site.
+When the UI changes, retake them rather than editing the images, and keep
+headline claims and lists of brand names out of all store graphics.
