@@ -1,53 +1,67 @@
-# DeepStack — Full Tech Stack & Architecture Inspector (Chrome MV3 Extension)
+# DeepStack — Tech Stack & Architecture Inspector
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support%20DeepStack-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/emmanouilkontos)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://github.com/EmmanouelKontos/deepstack)
 
-**DeepStack** is a high-precision, zero-telemetry Chrome/Brave Manifest V3 extension that goes far beyond Wappalyzer to inspect any website's **complete technology stack, exact framework versions, SSR/RSC runtime internals, live DNS/CNAME/MX/SPF infrastructure, hidden CSP domains, security posture, and design system**.
+A Manifest V3 extension for Chrome, Brave and Edge that shows how the website in your current tab is built. Every finding lists the evidence it came from, such as a script URL, response header, DOM marker or cookie name, together with a confidence score.
 
----
+## What it shows
 
-## How Wappalyzer Works vs. How DeepStack Improves Upon It
+| Tab | Contents |
+| :--- | :--- |
+| **Stack** | Plain-English summary, a four-layer map (interface, backend, hosting, services), and every detected technology grouped by category, with versions, confidence and expandable evidence. Filter with `/`. |
+| **Internals** | Rendering model (SSR, SSG, RSC streaming, islands, SPA), framework metadata (router, build ID, route), bundler, service workers, IndexedDB, Cache Storage and storage key names. |
+| **Network** | TTFB, first paint, protocol, compression, CDN cache status, DNS (CNAME/MX/SPF/TXT), API endpoints (REST, GraphQL, tRPC, WebSocket, SSE), hosts allowed by CSP but not yet contacted, and third-party domains. |
+| **Security** | A–F grade across HTTPS, HSTS, CSP, MIME sniffing, clickjacking, referrer, permissions and cross-origin policies, plus a cookie flag audit. Failing checks include a copyable fix. |
+| **Design & SEO** | Computed color palette, typography, loaded web fonts, `:root` CSS variables, Open Graph tags, canonical URL and JSON-LD types. |
 
-| Capability | Wappalyzer | DeepStack |
-| :--- | :--- | :--- |
-| **Detection Transparency** | Shows technology names only | **Full Evidence Trail** (`JS Runtime`, `DOM`, `HTTP Header`, `Cookie`, `Script URL`, `CSP Policy`, `Web Storage`, `Implied`) with confidence % |
-| **Framework Internals** | Detects "Next.js" or "React" | Inspects **React Fiber roots** (Concurrent vs Legacy), **Next.js App Router (`__next_f` RSC chunks) vs Pages Router (`__NEXT_DATA__`)**, **Astro Islands**, **Shopify theme metadata**, **Bundler chunks** |
-| **Pre-Existing Tabs** | Requires manual page refresh on already-open tabs | **Live On-Demand Injection (`chrome.scripting`) + Fallback HEAD Probe** works immediately on already-open tabs |
-| **Hidden Infrastructure** | Only inspects loaded scripts/HTML | Parses **`Content-Security-Policy` (CSP)** directives to uncover **dormant/hidden backend & 3rd-party domains** not yet called |
-| **API Architecture** | None | Automatically discovers **GraphQL**, **tRPC**, **REST/Fetch API** routes, and **WebSocket** endpoints from `PerformanceResourceTiming` & `webRequest` |
-| **Security & Cookie Forensics** | None | Computes **Security Grade (`A+` to `F`)**, inspects HSTS/CSP/XFO/COOP, and audits **`HttpOnly` & `Secure` cookies** |
-| **Design System Extraction** | Basic CSS framework regex | Extracts **computed color palette (`#HEX`)**, **typography stack**, **loaded `document.fonts`**, **dark-mode strategy**, and **`:root` CSS tokens** |
-| **Export** | Paid / Limited | One-click **Markdown (`MD`)** and **JSON (`JSON`)** full architecture report export |
+Export the report as Markdown or JSON (copy or download). Click any value to copy it.
 
----
+**Shortcuts:** `1`–`5` switch tabs · `/` or `⌘K` filters · `E` expands all evidence · `R` rescans · `C` copies Markdown · `Esc` clears.
 
-## Installation (Load Unpacked in Chrome / Brave / Edge)
+## Privacy
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable **Developer mode** (toggle in the top-right corner).
-3. Click **Load unpacked**.
-4. Select this directory: `/home/emmanouilkontos/Projects/plugin`
-5. Pin **DeepStack** to your toolbar and click it on any website!
+Analysis runs locally. DeepStack never reads cookie or storage values, and strips `Set-Cookie` values from captured headers. It makes network requests only when you open the popup: an opt-in DNS-over-HTTPS lookup of the domain name (off by default; turn it on in Settings), and a cookie-less `HEAD` request if the tab was opened before the extension. See [PRIVACY.md](PRIVACY.md).
 
----
+## Install (unpacked)
 
-## Project Structure
+1. Open `chrome://extensions` (or `brave://extensions`).
+2. Turn on **Developer mode**.
+3. Click **Load unpacked** and select this folder.
 
-- `manifest.json` — Chrome Extension Manifest V3 configuration
-- `src/content/main-world-probe.js` — Runs in `MAIN` world to inspect `window` globals, React Fiber trees, Next/Nuxt/Remix/Astro/Shopify payloads, `PerformanceResourceTiming`, Service Workers, `IndexedDB`, and `document.fonts`
-- `src/content/isolated-collector.js` — Runs in `ISOLATED` world to scan DOM selectors, Tailwind/CSS-in-JS heuristics, `:root` CSS tokens, computed color palette, typography, and JSON-LD schemas
-- `src/engine/signatures.js` — Multi-vector signature database across 19 technology categories with dependency implication graph (`implies`)
-- `src/engine/analyzer.js` — Core correlation engine, CSP parser, API endpoint classifier, and security posture grader
-- `src/background/service-worker.js` — Captures `main_frame` and subresource HTTP headers via `chrome.webRequest`, reads `HttpOnly` cookies via `chrome.cookies`, manages live script injection, and updates the toolbar badge
-- `src/popup/` — 5-tab developer inspection UI (`Stack`, `Internals`, `Network & APIs`, `Security`, `Design & SEO`)
+## Build for the Chrome Web Store
 
----
+```bash
+./scripts/build.sh
+```
 
-## Support the Project
+This writes `dist/deepstack-v<version>.zip`. The store listing copy is in [store/listing.md](store/listing.md), and the privacy-tab answers are in [CHROME_WEB_STORE_GUIDE.md](CHROME_WEB_STORE_GUIDE.md).
 
-DeepStack is 100% free, local, and open-source with zero tracking. If it saves you time inspecting websites or preparing client audits, consider supporting its development:
+## Project structure
 
-- **[Buy Me a Coffee](https://buymeacoffee.com/emmanouilkontos)**
-- Author: **[Emmanouil Kontos](https://emmanouilkontos.com)** ([@EmmanouelKontos](https://github.com/EmmanouelKontos))
+```
+src/
+  background/
+    service-worker.js     message routing, snapshot collection, badge
+    tab-store.js          per-tab header/URL capture, persisted to storage.session
+  content/
+    main-world-probe.js   MAIN world: framework globals, React/Next/Nuxt/Astro internals, perf, storage key names
+    isolated-collector.js ISOLATED world: DOM markers, scripts/links, meta, CSS tokens, palette, typography
+  engine/
+    analyzer.js           entry point: builds context, runs matchers, assembles the report
+    signatures.js         technology signature database
+    compiled-signatures.js, match-signatures.js, detections.js, enrich.js
+    network.js, security.js, csp.js, summary.js, dns-inspector.js, url.js
+  shared/settings.js      preferences shared by popup and service worker
+  popup/
+    popup.html, popup.js  shell and controller
+    panels/               stack, internals, network, security, design
+    lib/                  dom helpers, controls, export, feedback, theme
+    styles/               tokens, layout, components, panels
+```
 
+## Support
+
+DeepStack is free and open source. If it saves you time, consider [buying me a coffee](https://buymeacoffee.com/emmanouilkontos).
+
+Author: [Emmanouil Kontos](https://emmanouilkontos.com) ([@EmmanouelKontos](https://github.com/EmmanouelKontos))

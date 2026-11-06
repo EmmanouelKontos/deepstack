@@ -9,10 +9,24 @@
 
 const dnsCache = new Map();
 
+// Shared hosting domains where each subdomain is a different owner. Their apex TXT/MX records
+// belong to the platform, not the site, so the site's own name is treated as its "apex".
+const SHARED_HOST_SUFFIXES = [
+  'github.io', 'gitlab.io', 'vercel.app', 'netlify.app', 'pages.dev', 'workers.dev', 'web.app',
+  'firebaseapp.com', 'herokuapp.com', 'onrender.com', 'fly.dev', 'up.railway.app', 'railway.app',
+  'azurewebsites.net', 'azurestaticapps.net', 'appspot.com', 'myshopify.com', 'wixsite.com',
+  'squarespace.com', 'webflow.io', 'framer.website', 'framer.app', 'blogspot.com', 'wordpress.com',
+  'surge.sh', 'glitch.me', 'replit.app', 'repl.co', 'carrd.co', 'notion.site', 'bubbleapps.io',
+  'amplifyapp.com', 'cloudfront.net', 'ngrok.io', 'ngrok-free.app', 'deno.dev', 'supabase.co'
+];
+
 function extractApexDomain(hostname) {
   if (!hostname || !hostname.includes('.')) return hostname;
-  const parts = hostname.toLowerCase().split('.');
-  if (parts.length <= 2) return hostname.toLowerCase();
+  const lower = hostname.toLowerCase();
+  const shared = SHARED_HOST_SUFFIXES.find((s) => lower.endsWith(`.${s}`));
+  if (shared) return lower.slice(0, -(shared.length + 1)).split('.').pop() + `.${shared}`;
+  const parts = lower.split('.');
+  if (parts.length <= 2) return lower;
   // Handle common two-part TLDs like .co.uk, .com.au, .co.jp
   const secondLast = parts[parts.length - 2];
   if (['co', 'com', 'org', 'net', 'gov', 'edu', 'ac'].includes(secondLast) && parts[parts.length - 1].length === 2) {
