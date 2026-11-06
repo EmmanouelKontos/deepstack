@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="DeepStack" width="100%">
+  <img src="store/images/promo-marquee-1400x560.png" alt="DeepStack" width="100%">
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@ DeepStack is a browser extension that shows how the website in your current tab 
 Most technology detectors give you a list of logos. DeepStack shows the evidence behind each finding, such as the script URL, response header, DOM marker or global variable it matched, along with a confidence score, so you can check the result yourself rather than take it on trust.
 
 <p align="center">
-  <img src="docs/images/screenshot-stack.png" alt="The Stack tab, showing a summary of how the site is built and each detected technology with its version and confidence" width="820">
+  <img src="store/images/screenshot-stack.png" alt="The Stack tab, showing a summary of how the site is built and each detected technology with its version and confidence" width="820">
 </p>
 
 ## Features
@@ -37,9 +37,9 @@ Reports can be exported as Markdown or JSON, and any value can be copied with a 
 
 <table>
   <tr>
-    <td><img src="docs/images/screenshot-network.png" alt="Network tab"></td>
-    <td><img src="docs/images/screenshot-security.png" alt="Security tab"></td>
-    <td><img src="docs/images/screenshot-design.png" alt="Design and SEO tab"></td>
+    <td><img src="store/images/screenshot-network.png" alt="Network tab"></td>
+    <td><img src="store/images/screenshot-security.png" alt="Security tab"></td>
+    <td><img src="store/images/screenshot-design.png" alt="Design and SEO tab"></td>
   </tr>
   <tr>
     <td align="center">Network</td>
