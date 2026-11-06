@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "DeepStack — Full Tech Stack & Architecture Inspector",
+  "name": "DeepStack — Tech Stack & Architecture Inspector",
   "short_name": "DeepStack",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "minimum_chrome_version": "111",
   "homepage_url": "https://github.com/EmmanouelKontos/deepstack",
-  "description": "Inspect any website's full tech stack, framework versions, SSR/RSC internals, live DNS/CNAME, APIs, CSP, and security grade.",
+  "description": "See how any website is built: frameworks, hosting, APIs, security headers and design tokens, with the evidence behind each finding.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -18,7 +18,7 @@
     "https://*/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none';"
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https: http:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';"
   },
   "background": {
     "service_worker": "src/background/service-worker.js",
@@ -26,7 +26,7 @@
   },
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_title": "DeepStack — Inspect Full Tech Stack",
+    "default_title": "DeepStack — inspect this page",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -42,14 +42,24 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["src/content/main-world-probe.js"],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "src/content/main-world-probe.js"
+      ],
       "run_at": "document_idle",
       "world": "MAIN"
     },
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["src/content/isolated-collector.js"],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "src/content/isolated-collector.js"
+      ],
       "run_at": "document_idle",
       "world": "ISOLATED"
     }

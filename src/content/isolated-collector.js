@@ -4,13 +4,25 @@
  * computed design system (color palette & typography), and bridges with the Main-World Probe.
  */
 (function () {
-  if (window.__DEEPSTACK_ISOLATED_LOADED__) return;
-  window.__DEEPSTACK_ISOLATED_LOADED__ = true;
+  // Generation counter instead of a "loaded" flag: after the extension is reloaded or updated, the
+  // old script is orphaned (it can no longer receive messages) but its window globals can survive.
+  // A plain flag would then stop the re-injected script from registering, breaking already-open tabs.
+  // Only the newest generation answers requests.
+  const generation = (window.__DEEPSTACK_ISOLATED_GEN__ || 0) + 1;
+  window.__DEEPSTACK_ISOLATED_GEN__ = generation;
+  const isCurrent = () => window.__DEEPSTACK_ISOLATED_GEN__ === generation;
 
+  const MAX_PROBE_BYTES = 1_500_000;
   let latestMainProbe = null;
 
   function sanitizeMainProbePayload(raw) {
     if (!raw || typeof raw !== 'object') return null;
+    try {
+      // The page can post a spoofed payload; cap its size so it can't bloat messaging or storage.
+      if (JSON.stringify(raw).length > MAX_PROBE_BYTES) return null;
+    } catch {
+      return null;
+    }
     const cleanSignals = Object.create(null);
     if (raw.jsSignals && typeof raw.jsSignals === 'object') {
       const entries = Object.entries(raw.jsSignals).slice(0, 150);
@@ -33,40 +45,26 @@
     };
   }
 
+  const isProbeMessage = (event) =>
+    event.source === window && event.data && event.data.source === '__DEEPSTACK_MAIN_PROBE__';
+
   window.addEventListener('message', (event) => {
-    if (event.source === window && event.data && event.data.source === '__DEEPSTACK_MAIN_PROBE__') {
-      latestMainProbe = sanitizeMainProbePayload(event.data.payload);
-      try {
-        document.documentElement.removeAttribute('data-deepstack-probe');
-      } catch {}
-    }
+    if (isProbeMessage(event)) latestMainProbe = sanitizeMainProbePayload(event.data.payload);
   });
 
-  function readMainProbeFromDom() {
-    try {
-      const raw = document.documentElement.getAttribute('data-deepstack-probe');
-      if (raw && raw.length < 500000) {
-        latestMainProbe = sanitizeMainProbePayload(JSON.parse(raw));
-        document.documentElement.removeAttribute('data-deepstack-probe');
-      }
-    } catch {}
-    return latestMainProbe;
-  }
-
+  // The main-world probe answers a CustomEvent with a window.postMessage (the two worlds share the DOM, not globals).
   function requestFreshMainProbe() {
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
-        resolve(readMainProbeFromDom());
-      }, 300);
+        window.removeEventListener('message', handler);
+        resolve(latestMainProbe);
+      }, 1500);
 
       const handler = (event) => {
-        if (event.source === window && event.data && event.data.source === '__DEEPSTACK_MAIN_PROBE__') {
+        if (isProbeMessage(event)) {
           clearTimeout(timeout);
           window.removeEventListener('message', handler);
           latestMainProbe = sanitizeMainProbePayload(event.data.payload);
-          try {
-            document.documentElement.removeAttribute('data-deepstack-probe');
-          } catch {}
           resolve(latestMainProbe);
         }
       };
@@ -403,7 +401,7 @@
                 if (prop.startsWith('--radix-')) cssVarPrefixes.radix++;
                 if (prop.startsWith('--bs-')) {
                   cssVarPrefixes.bs++;
-                  if (prop === '--bs-body-bg-rgb' || prop === '--bs-Emphasis-color') bootstrapVersion = '5.3+';
+                  if (prop === '--bs-body-bg-rgb' || prop === '--bs-emphasis-color') bootstrapVersion = '5.3+';
                   else if (!bootstrapVersion) bootstrapVersion = '5.x';
                 }
                 if (prop === '--breakpoint-md' && !bootstrapVersion) bootstrapVersion = '4.x';
@@ -516,7 +514,7 @@
   }
 
   async function collectFullPageSnapshot(reuseRecentProbe = false) {
-    let mainProbe = latestMainProbe || readMainProbeFromDom();
+    let mainProbe = latestMainProbe;
     if (!reuseRecentProbe || !mainProbe || (Date.now() - (mainProbe.timestamp || 0) > 5000)) {
       mainProbe = await requestFreshMainProbe();
     }
@@ -542,7 +540,7 @@
 
   // Listen for requests from background service worker or popup
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-    if (msg && msg.type === 'DEEPSTACK_COLLECT_PAGE') {
+    if (msg && msg.type === 'DEEPSTACK_COLLECT_PAGE' && isCurrent()) {
       collectFullPageSnapshot(false)
         .then((snapshot) => sendResponse({ ok: true, snapshot }))
         .catch((err) => sendResponse({ ok: false, error: String(err) }));

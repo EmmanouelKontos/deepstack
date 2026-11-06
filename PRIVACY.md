@@ -1,23 +1,42 @@
 # Privacy Policy — DeepStack
 
-**Last Updated:** November 2026
+**Last updated:** November 2026
 
-**DeepStack — Full-Stack & Architecture Inspector** is a local developer diagnostic browser extension.
+DeepStack is a browser extension that shows how the website in your current tab is built. It runs entirely in your browser.
 
-## 1. Data Collection & Processing
-- **Zero Personal Data Collection:** DeepStack does **not** collect, store, transmit, or sell any personal data, browsing history, credentials, cookie values, storage values, or telemetry to any developer server or third party.
-- **100% Local Analysis:** All DOM inspection, JavaScript runtime probing, HTTP response header analysis, and cookie metadata checks (`Secure`, `HttpOnly`, `SameSite` flags, and cookie names) execute **exclusively inside your local browser** on your device.
-- **Never Reads Sensitive Values:** DeepStack never reads or exports cookie values, `localStorage` values, `sessionStorage` values, form inputs, or authentication tokens.
+## 1. What DeepStack does not collect
 
-## 2. Optional Network Queries (DNS-over-HTTPS)
-- To identify public domain infrastructure (such as CNAME hosting providers, MX email gateways, and public SPF/TXT records), DeepStack sends standard public DNS queries for the active website's hostname to Cloudflare's public DNS-over-HTTPS resolver (`https://cloudflare-dns.com/dns-query`).
-- No user identifiers, cookies, URL paths, or query parameters are included in these DNS lookups.
+- DeepStack has no servers, analytics, telemetry or accounts. It does not collect, sell or transfer personal data or browsing history.
+- It never reads cookie values, `localStorage` / `sessionStorage` values, form contents or authentication tokens.
+- `Set-Cookie` response headers are reduced to cookie names before anything is stored or displayed.
 
-## 3. Permissions Usage
-- **`activeTab` & `scripting`:** Used to inspect the active webpage's DOM markers and JavaScript framework globals when you open or run the extension.
-- **`webRequest`:** Used read-only in the browser to inspect HTTP response headers (e.g., `Server`, `X-Powered-By`, `Content-Security-Policy`, `Strict-Transport-Security`) and subresource URLs on the inspected tab.
-- **`cookies`:** Used read-only to inspect cookie names and security flags (`HttpOnly`, `Secure`, `SameSite`) to identify backend frameworks (such as `PHPSESSID`, `laravel_session`, or `JSESSIONID`) and audit session security. Cookie values are never stored or transmitted.
-- **`storage`:** Used locally to store extension preferences.
+## 2. What it reads, locally
 
-## 4. Contact
-For questions or issues regarding this privacy policy, please open an issue on this GitHub repository.
+When a page loads, and when you open the DeepStack popup, the extension reads:
+
+- page markup, script/stylesheet URLs, JavaScript framework globals and performance timing;
+- HTTP response headers and subresource URLs for that tab;
+- cookie **names** and their `HttpOnly`, `Secure` and `SameSite` flags;
+- browser storage **key names** (not values).
+
+This is analyzed on your device. Per-tab header data is held in the browser's session storage and is deleted when the tab is closed or the browser exits.
+
+## 3. Network requests DeepStack makes
+
+Only when you open the popup:
+
+- **DNS lookup (off by default; you turn it on in Settings):** when enabled, the site's domain name is sent to Cloudflare's public DNS-over-HTTPS resolver (`https://cloudflare-dns.com/dns-query`) to read public CNAME, A, MX and TXT records. No cookies, URL paths, query strings or identifiers are included.
+- **Header fallback:** if the tab was opened before DeepStack was running, the extension sends one `HEAD` request to the page's own URL, without cookies, to read its response headers.
+
+Passive page loads never trigger either request.
+
+## 4. Permissions
+
+- **`activeTab`, `scripting`:** run the read-only inspection scripts on the page you are viewing.
+- **`webRequest`:** read response headers and request URLs. Requests are never blocked or modified.
+- **`cookies`:** read cookie names and security flags, including `HttpOnly` cookies. Values are never read.
+- **`storage`:** save your preferences (theme, DNS lookups) and keep per-tab header data for the current browser session.
+
+## 5. Contact
+
+Questions or issues: open an issue at https://github.com/EmmanouelKontos/deepstack.

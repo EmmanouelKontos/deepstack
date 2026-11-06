@@ -1,52 +1,47 @@
-# Chrome Web Store Submission Copy-Paste Guide
+# Chrome Web Store submission guide
 
-When uploading [dist/deepstack-v1.1.0.zip](file:///home/emmanouilkontos/Projects/plugin/dist/deepstack-v1.1.0.zip) (also copied to `~/Downloads/deepstack-v1.1.0.zip` for Brave Flatpak access) in the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole), use the exact answers below under the **Store Listing** and **Privacy Practices** tabs.
+Upload `dist/deepstack-v1.2.0.zip` (build it with `./scripts/build.sh`) in the
+[Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 
----
-
-## 1. Store Listing Tab
-
-- **Title:** `DeepStack — Full-Stack & Architecture Inspector`
-- **Summary (up to 132 chars):**
-  `Inspect any website's full tech stack, framework versions, SSR/RSC internals, backend & DNS infrastructure, APIs, and security.`
-- **Category:** `Developer Tools`
-- **Language:** `English`
+- **Store listing tab:** copy the title, summary and description from
+  [store/listing.md](store/listing.md). That copy was rewritten to resolve the
+  v1.1.0 *Keyword spam (Yellow Argon)* rejection, so don't add lists of
+  framework or brand names back into it.
+- **Privacy practices tab:** use the answers below.
 
 ---
 
-## 2. Privacy Practices Tab (Permission Justifications)
+## Single purpose description
 
-### Single Purpose Description
-> Inspect and identify the technology stack, frontend/backend frameworks, runtime versions, DNS infrastructure, API endpoints, security posture, and design system of the currently visited webpage.
+> Shows the technologies, hosting, network activity, security headers and design tokens of the web page in the active tab, so developers can understand how it is built.
 
-### Permission Justifications
+## Permission justifications
 
 - **`activeTab`**
-  > Required to inspect the currently active tab's URL, DOM markers, and technology stack when the user opens the DeepStack popup.
+  > Lets DeepStack inspect the page in the active tab when the user opens the popup.
 
 - **`scripting`**
-  > Required to inject read-only page inspection scripts into already-open tabs when the user clicks the DeepStack icon, allowing detection of JavaScript framework versions (e.g., React, Vue, Next.js, Nuxt) without forcing a page reload.
+  > Injects DeepStack's read-only inspection scripts into tabs that were already open before the extension was installed or updated, so the user does not have to reload the page.
 
 - **`webRequest`**
-  > Required to read HTTP response headers (such as `Server`, `X-Powered-By`, `CF-Ray`, `Content-Security-Policy`, and `Strict-Transport-Security`) and subresource request URLs in real time to identify CDNs, backend servers, API endpoints, and security posture.
+  > Reads HTTP response headers (for example `Server`, `Content-Security-Policy`, `Strict-Transport-Security`) and subresource URLs of the inspected tab to identify servers, CDNs, API endpoints and security settings. Requests are never blocked or modified.
 
 - **`cookies`**
-  > Required to read cookie names and security attributes (`HttpOnly`, `Secure`, `SameSite`) on the inspected page in order to detect backend frameworks (including `HttpOnly` session cookies like `PHPSESSID`, `laravel_session`, `JSESSIONID`, and `ASP.NET_SessionId`) and audit session security. DeepStack never reads or transmits cookie values.
+  > Reads cookie names and security flags (`HttpOnly`, `Secure`, `SameSite`) of the inspected site, including `HttpOnly` session cookies that page scripts cannot see. Cookie names identify server frameworks, and the flags feed the security audit. Cookie values are never read, stored or transmitted.
 
 - **`storage`**
-  > Required to store local user UI preferences inside the browser.
+  > Stores the user's preferences (theme, opt-in DNS lookups) and keeps per-tab response headers in session storage so results survive the service worker being suspended.
 
-- **Host Permissions (`http://*/*`, `https://*/*`)**
-  > Required because DeepStack is a universal web developer diagnostic tool that inspects HTTP response headers, DOM nodes, and public DNS records on any website the user visits.
+- **Host permissions (`http://*/*`, `https://*/*`)**
+  > DeepStack is a general-purpose developer tool that can inspect any website the user chooses to analyze. It needs host access to read response headers and run its inspection scripts on that site.
 
-### Remote Code
-- **Are you using remote code?**
-  Select: **`No, I am not using Remote code`** (all JavaScript and SVG icons are bundled inside the extension package).
+## Remote code
 
-### Data Usage Certification
-- Check **all three** certification boxes confirming you do not sell user data or use it for unrelated purposes.
-- **Privacy Policy URL:**
-  `https://github.com/EmmanouelKontos/deepstack/blob/main/PRIVACY.md`
-- **Homepage / Support URL:**
-  `https://github.com/EmmanouelKontos/deepstack`
+**No, I am not using remote code.** All JavaScript and icons ship inside the package.
 
+## Data usage
+
+- **Data types collected:** leave every box unchecked. Pages are analyzed on the device and nothing is sent to the developer. DNS lookups are opt-in and send only a domain name to a public resolver.
+- Check all three certification boxes. DeepStack does not collect, sell or transfer user data.
+- **Privacy policy URL:** `https://github.com/EmmanouelKontos/deepstack/blob/main/PRIVACY.md`
+- **Homepage / support URL:** `https://github.com/EmmanouelKontos/deepstack`

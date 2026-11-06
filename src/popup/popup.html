@@ -1,167 +1,119 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DeepStack — Stack & Architecture Inspector</title>
-  <link rel="stylesheet" href="popup.css" />
+  <title>DeepStack</title>
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/panels.css" />
 </head>
 <body>
   <div class="app">
-    <!-- Top Header -->
     <header class="topbar">
       <div class="brand">
-        <div id="brand-icon-box" class="brand-logo" aria-hidden="true"></div>
+        <div id="brand-logo" class="brand-logo" aria-hidden="true"></div>
         <div class="brand-text">
-          <div class="brand-title-row">
-            <h1>DeepStack</h1>
-            <span id="host-pill" class="host-pill">Scanning…</span>
-          </div>
-          <p id="render-strategy-sub" class="brand-subtitle">Inspecting page architecture…</p>
+          <h1 id="host" class="host mono">Inspecting…</h1>
+          <p id="strategy" class="strategy">Reading page architecture</p>
         </div>
       </div>
 
-      <div class="topbar-actions">
-        <button id="btn-theme" class="icon-btn" title="Switch Light / Dark theme" aria-label="Toggle theme"></button>
-        <button id="btn-copy-md" class="text-btn" title="Copy readable Markdown report">Copy Report</button>
-        <button id="btn-copy-json" class="text-btn" title="Copy raw JSON data">JSON</button>
-        <button id="btn-rescan" class="icon-btn" title="Re-scan current page" aria-label="Re-scan"></button>
+      <div class="actions">
+        <button id="btn-rescan" class="icon-btn" type="button" title="Rescan (R)" aria-label="Rescan page"></button>
+
+        <div class="menu-wrap">
+          <button id="btn-export" class="icon-btn" type="button" title="Export report" aria-label="Export report" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-export" disabled></button>
+          <div id="menu-export" class="menu" role="menu" hidden>
+            <button type="button" role="menuitem" data-export="copy-md">Copy as Markdown <kbd>C</kbd></button>
+            <button type="button" role="menuitem" data-export="copy-json">Copy as JSON</button>
+            <div class="menu-sep" role="separator"></div>
+            <button type="button" role="menuitem" data-export="save-md">Download .md</button>
+            <button type="button" role="menuitem" data-export="save-json">Download .json</button>
+          </div>
+        </div>
+
+        <div class="menu-wrap">
+          <button id="btn-settings" class="icon-btn" type="button" title="Settings" aria-label="Settings" aria-haspopup="dialog" aria-expanded="false" aria-controls="menu-settings"></button>
+          <div id="menu-settings" class="menu menu-settings" role="dialog" aria-label="Settings" hidden>
+            <p class="menu-label">Theme</p>
+            <div class="segmented" role="radiogroup" aria-label="Theme">
+              <button type="button" role="radio" data-theme-choice="system">System</button>
+              <button type="button" role="radio" data-theme-choice="light">Light</button>
+              <button type="button" role="radio" data-theme-choice="dark">Dark</button>
+            </div>
+            <div class="menu-sep" role="separator"></div>
+            <label class="switch-row">
+              <span>
+                <span class="switch-title">DNS lookups</span>
+                <span class="switch-desc">Sends only the domain name to a public DNS-over-HTTPS resolver to identify hosting and email providers.</span>
+              </span>
+              <input id="toggle-dns" type="checkbox" class="switch" />
+            </label>
+          </div>
+        </div>
       </div>
     </header>
 
-    <!-- Key Metrics Bar -->
-    <section id="summary-strip" class="summary-strip hidden">
-      <div class="metric-cell">
-        <span class="metric-label">Detected Stack</span>
-        <span id="metric-tech-count" class="metric-value">0 tools</span>
-      </div>
-      <div class="metric-cell">
-        <span class="metric-label">Response Speed</span>
-        <span id="metric-cache" class="metric-value">—</span>
-      </div>
-      <div class="metric-cell">
-        <span class="metric-label">Connection</span>
-        <span id="metric-protocol" class="metric-value">—</span>
-      </div>
-      <div class="metric-cell">
-        <span class="metric-label">Security Grade</span>
-        <span id="metric-security" class="metric-value">—</span>
-      </div>
+    <section id="metrics" class="metrics" aria-label="Summary">
+      <div class="metric"><span class="metric-label">Technologies</span><span id="m-tech" class="metric-value tnum"><i class="sk sk-sm"></i></span></div>
+      <div class="metric"><span class="metric-label">Server response</span><span id="m-ttfb" class="metric-value tnum"><i class="sk sk-sm"></i></span></div>
+      <div class="metric"><span class="metric-label">Protocol</span><span id="m-proto" class="metric-value tnum"><i class="sk sk-sm"></i></span></div>
+      <div class="metric"><span class="metric-label">Security</span><span id="m-sec" class="metric-value tnum"><i class="sk sk-sm"></i></span></div>
     </section>
 
-    <!-- Navigation Tabs -->
-    <nav class="tabs" role="tablist">
-      <button class="tab active" data-tab="stack" role="tab">
-        <span>Stack</span>
-        <span id="tab-count-stack" class="tab-badge">0</span>
-      </button>
-      <button class="tab" data-tab="internals" role="tab">
-        <span>App Internals</span>
-      </button>
-      <button class="tab" data-tab="network" role="tab">
-        <span>Network & APIs</span>
-        <span id="tab-count-apis" class="tab-badge">0</span>
-      </button>
-      <button class="tab" data-tab="security" role="tab">
-        <span>Security</span>
-      </button>
-      <button class="tab" data-tab="design" role="tab">
-        <span>Design & SEO</span>
-      </button>
+    <nav class="tabs" role="tablist" aria-label="Report sections">
+      <button class="tab" role="tab" id="tab-stack" data-tab="stack" aria-controls="panel-stack" aria-selected="true">Stack <span id="count-stack" class="tab-count tnum"></span></button>
+      <button class="tab" role="tab" id="tab-internals" data-tab="internals" aria-controls="panel-internals" aria-selected="false" tabindex="-1">Internals</button>
+      <button class="tab" role="tab" id="tab-network" data-tab="network" aria-controls="panel-network" aria-selected="false" tabindex="-1">Network <span id="count-network" class="tab-count tnum"></span></button>
+      <button class="tab" role="tab" id="tab-security" data-tab="security" aria-controls="panel-security" aria-selected="false" tabindex="-1">Security</button>
+      <button class="tab" role="tab" id="tab-design" data-tab="design" aria-controls="panel-design" aria-selected="false" tabindex="-1">Design &amp; SEO</button>
     </nav>
 
-    <!-- Loading & Error States -->
-    <div id="state-loading" class="state-box">
-      <div class="spinner"></div>
-      <p class="state-title">Analyzing website architecture</p>
-      <p class="state-desc">Inspecting framework runtime, HTTP headers, cookies, network requests, and styles…</p>
-    </div>
+    <main id="content" class="content" aria-busy="true">
+      <div id="state-loading" class="skeleton" aria-label="Loading">
+        <div class="sk sk-block"></div>
+        <div class="sk sk-line w-40"></div>
+        <div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div>
+        <div class="sk sk-line w-30"></div>
+        <div class="sk sk-row"></div><div class="sk sk-row"></div>
+      </div>
 
-    <div id="state-error" class="state-box hidden">
-      <div id="error-icon-holder" class="error-icon-box"></div>
-      <p id="error-message" class="state-title">Unable to inspect this page</p>
-      <p class="state-desc">Browser security restricts extensions from running on internal <code>brave://</code>, <code>chrome://</code>, or Web Store pages. Open any standard website to inspect its tech stack.</p>
-    </div>
+      <div id="state-error" class="empty empty-full" hidden>
+        <div id="error-icon" class="empty-icon"></div>
+        <p id="error-title" class="empty-title">Can't inspect this page</p>
+        <p id="error-desc" class="empty-desc"></p>
+        <button id="btn-retry" class="btn" type="button">Try again</button>
+      </div>
 
-    <!-- Main Scrollable Content -->
-    <main id="main-content" class="content hidden">
-      <!-- TAB 1: OVERVIEW & TECH STACK -->
-      <section id="panel-stack" class="tab-panel active">
-        <!-- Plain-English Summary Card -->
-        <div id="overview-card" class="overview-card"></div>
-
-        <!-- Search & Proof Toggle -->
-        <div class="toolbar-row">
-          <div class="search-wrap">
-            <span id="search-icon-holder" class="search-icon"></span>
-            <input
-              type="search"
-              id="search-input"
-              class="search-input"
-              placeholder="Search technologies, categories, or roles (press /)…"
-              autocomplete="off"
-            />
-          </div>
-          <button id="btn-toggle-evidence" class="btn-subtle" title="Show or hide technical detection proof for all items">
-            Technical Proof
-          </button>
+      <section id="panel-stack" class="panel" role="tabpanel" aria-labelledby="tab-stack" hidden>
+        <div id="stack-overview"></div>
+        <div class="toolbar">
+          <label class="search">
+            <span id="search-icon" class="search-icon" aria-hidden="true"></span>
+            <input id="search" type="search" placeholder="Filter technologies" autocomplete="off" spellcheck="false" aria-label="Filter technologies" />
+            <kbd class="search-kbd">/</kbd>
+          </label>
+          <button id="btn-evidence" class="btn btn-toggle" type="button" aria-pressed="false" title="Expand all evidence (E)">Show evidence</button>
         </div>
-
-        <div id="stack-categories-container" class="stack-list"></div>
+        <div id="stack-list"></div>
       </section>
-
-      <!-- TAB 2: APP INTERNALS -->
-      <section id="panel-internals" class="tab-panel">
-        <div id="internals-container" class="panel-sections"></div>
-      </section>
-
-      <!-- TAB 3: NETWORK & APIS -->
-      <section id="panel-network" class="tab-panel">
-        <div id="network-container" class="panel-sections"></div>
-      </section>
-
-      <!-- TAB 4: SECURITY & PRIVACY -->
-      <section id="panel-security" class="tab-panel">
-        <div id="security-container" class="panel-sections"></div>
-      </section>
-
-      <!-- TAB 5: DESIGN & SEO -->
-      <section id="panel-design" class="tab-panel">
-        <div id="design-container" class="panel-sections"></div>
-      </section>
+      <section id="panel-internals" class="panel" role="tabpanel" aria-labelledby="tab-internals" hidden></section>
+      <section id="panel-network" class="panel" role="tabpanel" aria-labelledby="tab-network" hidden></section>
+      <section id="panel-security" class="panel" role="tabpanel" aria-labelledby="tab-security" hidden></section>
+      <section id="panel-design" class="panel" role="tabpanel" aria-labelledby="tab-design" hidden></section>
     </main>
 
-    <!-- Footer with GitHub & Buy Me a Coffee Support -->
-    <footer class="app-footer">
-      <span class="footer-meta">DeepStack v1.1.0 · Local &amp; Open Source</span>
-      <div class="footer-actions">
-        <a
-          id="link-github"
-          class="footer-link"
-          href="https://github.com/EmmanouelKontos/deepstack"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Star or contribute on GitHub"
-        >
-          <span id="github-icon-holder" class="footer-icon"></span>
-          <span>GitHub</span>
-        </a>
-        <a
-          id="link-coffee"
-          class="sponsor-btn"
-          href="https://buymeacoffee.com/emmanouilkontos"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Support DeepStack development on Buy Me a Coffee"
-        >
-          <span id="coffee-icon-holder" class="footer-icon"></span>
-          <span>Buy Me a Coffee</span>
-        </a>
+    <footer class="footer">
+      <span id="footer-meta" class="footer-meta mono"></span>
+      <div class="footer-links">
+        <a class="footer-link" href="https://github.com/EmmanouelKontos/deepstack" target="_blank" rel="noopener noreferrer"><span id="icon-github"></span>Source</a>
+        <a class="footer-link" href="https://buymeacoffee.com/emmanouilkontos" target="_blank" rel="noopener noreferrer"><span id="icon-coffee"></span>Support</a>
       </div>
     </footer>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast hidden">Copied to clipboard</div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </div>
 
   <script type="module" src="popup.js"></script>
