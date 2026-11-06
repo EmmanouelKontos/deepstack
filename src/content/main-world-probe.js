@@ -499,90 +499,66 @@
     return { navigation, resourceSummary };
   }
 
+  const withTimeout = (promise, fallback, ms = 400) =>
+    Promise.race([Promise.resolve(promise).catch(() => fallback), new Promise((r) => setTimeout(() => r(fallback), ms))]);
+
+  async function inspectServiceWorker() {
+    const info = { active: false, scriptURL: null, scope: null, registrationsCount: 0 };
+    if (!navigator.serviceWorker) return info;
+    if (navigator.serviceWorker.controller) {
+      info.active = true;
+      info.scriptURL = navigator.serviceWorker.controller.scriptURL;
+    }
+    const regs = await withTimeout(navigator.serviceWorker.getRegistrations(), []);
+    if (Array.isArray(regs) && regs.length > 0) {
+      info.active = true;
+      info.registrationsCount = regs.length;
+      const sw = regs[0].active || regs[0].waiting || regs[0].installing;
+      if (sw && !info.scriptURL) info.scriptURL = sw.scriptURL;
+      info.scope = regs[0].scope || null;
+    }
+    return info;
+  }
+
+  async function listIndexedDbNames() {
+    if (!window.indexedDB || typeof window.indexedDB.databases !== 'function') return [];
+    const dbs = await withTimeout(window.indexedDB.databases(), []);
+    return Array.isArray(dbs) ? dbs.map((d) => (d.name ? `${d.name} (v${d.version || 1})` : 'unnamed')).slice(0, 20) : [];
+  }
+
+  async function listCacheNames() {
+    if (!window.caches || typeof window.caches.keys !== 'function') return [];
+    const keys = await withTimeout(window.caches.keys(), []);
+    return Array.isArray(keys) ? keys.slice(0, 20) : [];
+  }
+
+  function listLoadedFonts() {
+    const fontSet = new Set();
+    if (document.fonts && typeof document.fonts.forEach === 'function') {
+      document.fonts.forEach((f) => {
+        if (f && f.family && f.status === 'loaded') fontSet.add(f.family.replace(/^["']|["']$/g, '').trim());
+      });
+    }
+    return Array.from(fontSet).slice(0, 25);
+  }
+
   async function collectBrowserCapabilities() {
-    const capabilities = {
-      serviceWorker: {
-        active: false,
-        scriptURL: null,
-        scope: null,
-        registrationsCount: 0
-      },
+    // Key names only; storage values are never read.
+    const [serviceWorker, indexedDbNames, cacheStorageNames] = await Promise.all([
+      inspectServiceWorker().catch(() => ({ active: false, scriptURL: null, scope: null, registrationsCount: 0 })),
+      listIndexedDbNames().catch(() => []),
+      listCacheNames().catch(() => [])
+    ]);
+    return {
+      serviceWorker,
       storage: {
-        localStorageKeys: [],
-        sessionStorageKeys: [],
-        indexedDbNames: [],
-        cacheStorageNames: []
+        localStorageKeys: safeGet(() => Object.keys(window.localStorage).slice(0, 60), []),
+        sessionStorageKeys: safeGet(() => Object.keys(window.sessionStorage).slice(0, 60), []),
+        indexedDbNames,
+        cacheStorageNames
       },
-      fonts: []
+      fonts: safeGet(listLoadedFonts, [])
     };
-
-    try {
-      if (navigator.serviceWorker) {
-        if (navigator.serviceWorker.controller) {
-          capabilities.serviceWorker.active = true;
-          capabilities.serviceWorker.scriptURL = navigator.serviceWorker.controller.scriptURL;
-        }
-        const regs = await Promise.race([
-          navigator.serviceWorker.getRegistrations(),
-          new Promise(r => setTimeout(() => r([]), 250))
-        ]);
-        if (Array.isArray(regs) && regs.length > 0) {
-          capabilities.serviceWorker.active = true;
-          capabilities.serviceWorker.registrationsCount = regs.length;
-          const activeSW = regs[0].active || regs[0].waiting || regs[0].installing;
-          if (activeSW && !capabilities.serviceWorker.scriptURL) {
-            capabilities.serviceWorker.scriptURL = activeSW.scriptURL;
-          }
-          capabilities.serviceWorker.scope = regs[0].scope || null;
-        }
-      }
-    } catch {}
-
-    try {
-      capabilities.storage.localStorageKeys = Object.keys(window.localStorage || {}).slice(0, 60);
-    } catch {}
-
-    try {
-      capabilities.storage.sessionStorageKeys = Object.keys(window.sessionStorage || {}).slice(0, 60);
-    } catch {}
-
-    try {
-      if (window.indexedDB && typeof window.indexedDB.databases === 'function') {
-        const dbs = await Promise.race([
-          window.indexedDB.databases(),
-          new Promise(r => setTimeout(() => r([]), 250))
-        ]);
-        if (Array.isArray(dbs)) {
-          capabilities.storage.indexedDbNames = dbs.map(d => d.name ? `${d.name} (v${d.version || 1})` : 'unnamed').slice(0, 20);
-        }
-      }
-    } catch {}
-
-    try {
-      if (window.caches && typeof window.caches.keys === 'function') {
-        const keys = await Promise.race([
-          window.caches.keys(),
-          new Promise(r => setTimeout(() => r([]), 250))
-        ]);
-        if (Array.isArray(keys)) {
-          capabilities.storage.cacheStorageNames = keys.slice(0, 20);
-        }
-      }
-    } catch {}
-
-    try {
-      if (document.fonts && typeof document.fonts.forEach === 'function') {
-        const fontSet = new Set();
-        document.fonts.forEach(f => {
-          if (f && f.family) {
-            fontSet.add(f.family.replace(/^["']|["']$/g, '').trim());
-          }
-        });
-        capabilities.fonts = Array.from(fontSet).slice(0, 25);
-      }
-    } catch {}
-
-    return capabilities;
   }
 
   async function runMainWorldProbe() {
@@ -600,10 +576,6 @@
       perf,
       capabilities
     };
-
-    try {
-      document.documentElement.setAttribute('data-deepstack-probe', JSON.stringify(payload));
-    } catch {}
 
     try {
       const targetOrigin =

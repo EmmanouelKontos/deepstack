@@ -33,40 +33,26 @@
     };
   }
 
+  const isProbeMessage = (event) =>
+    event.source === window && event.data && event.data.source === '__DEEPSTACK_MAIN_PROBE__';
+
   window.addEventListener('message', (event) => {
-    if (event.source === window && event.data && event.data.source === '__DEEPSTACK_MAIN_PROBE__') {
-      latestMainProbe = sanitizeMainProbePayload(event.data.payload);
-      try {
-        document.documentElement.removeAttribute('data-deepstack-probe');
-      } catch {}
-    }
+    if (isProbeMessage(event)) latestMainProbe = sanitizeMainProbePayload(event.data.payload);
   });
 
-  function readMainProbeFromDom() {
-    try {
-      const raw = document.documentElement.getAttribute('data-deepstack-probe');
-      if (raw && raw.length < 500000) {
-        latestMainProbe = sanitizeMainProbePayload(JSON.parse(raw));
-        document.documentElement.removeAttribute('data-deepstack-probe');
-      }
-    } catch {}
-    return latestMainProbe;
-  }
-
+  // The main-world probe answers a CustomEvent with a window.postMessage (the two worlds share the DOM, not globals).
   function requestFreshMainProbe() {
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
-        resolve(readMainProbeFromDom());
-      }, 300);
+        window.removeEventListener('message', handler);
+        resolve(latestMainProbe);
+      }, 1500);
 
       const handler = (event) => {
-        if (event.source === window && event.data && event.data.source === '__DEEPSTACK_MAIN_PROBE__') {
+        if (isProbeMessage(event)) {
           clearTimeout(timeout);
           window.removeEventListener('message', handler);
           latestMainProbe = sanitizeMainProbePayload(event.data.payload);
-          try {
-            document.documentElement.removeAttribute('data-deepstack-probe');
-          } catch {}
           resolve(latestMainProbe);
         }
       };
@@ -403,7 +389,7 @@
                 if (prop.startsWith('--radix-')) cssVarPrefixes.radix++;
                 if (prop.startsWith('--bs-')) {
                   cssVarPrefixes.bs++;
-                  if (prop === '--bs-body-bg-rgb' || prop === '--bs-Emphasis-color') bootstrapVersion = '5.3+';
+                  if (prop === '--bs-body-bg-rgb' || prop === '--bs-emphasis-color') bootstrapVersion = '5.3+';
                   else if (!bootstrapVersion) bootstrapVersion = '5.x';
                 }
                 if (prop === '--breakpoint-md' && !bootstrapVersion) bootstrapVersion = '4.x';
@@ -516,7 +502,7 @@
   }
 
   async function collectFullPageSnapshot(reuseRecentProbe = false) {
-    let mainProbe = latestMainProbe || readMainProbeFromDom();
+    let mainProbe = latestMainProbe;
     if (!reuseRecentProbe || !mainProbe || (Date.now() - (mainProbe.timestamp || 0) > 5000)) {
       mainProbe = await requestFreshMainProbe();
     }
