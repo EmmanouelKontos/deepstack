@@ -21,7 +21,7 @@ Export the report as Markdown or JSON (copy or download). Click any value to cop
 
 ## Privacy
 
-Analysis runs locally. DeepStack never reads cookie or storage values, and strips `Set-Cookie` values from captured headers. It makes network requests only when you open the popup: an optional DNS-over-HTTPS lookup of the domain name (turn it off in Settings), and a cookie-less `HEAD` request if the tab was opened before the extension. See [PRIVACY.md](PRIVACY.md).
+Analysis runs locally. DeepStack never reads cookie or storage values, and strips `Set-Cookie` values from captured headers. It makes network requests only when you open the popup: an opt-in DNS-over-HTTPS lookup of the domain name (off by default; turn it on in Settings), and a cookie-less `HEAD` request if the tab was opened before the extension. See [PRIVACY.md](PRIVACY.md).
 
 ## Install (unpacked)
 

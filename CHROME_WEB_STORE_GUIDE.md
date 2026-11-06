@@ -30,7 +30,7 @@ Upload `dist/deepstack-v1.2.0.zip` (build it with `./scripts/build.sh`) in the
   > Reads cookie names and security flags (`HttpOnly`, `Secure`, `SameSite`) of the inspected site, including `HttpOnly` session cookies that page scripts cannot see. Cookie names identify server frameworks, and the flags feed the security audit. Cookie values are never read, stored or transmitted.
 
 - **`storage`**
-  > Stores the user's preferences (theme, DNS lookup on/off) and keeps per-tab response headers in session storage so results survive the service worker being suspended.
+  > Stores the user's preferences (theme, opt-in DNS lookups) and keeps per-tab response headers in session storage so results survive the service worker being suspended.
 
 - **Host permissions (`http://*/*`, `https://*/*`)**
   > DeepStack is a general-purpose developer tool that can inspect any website the user chooses to analyze. It needs host access to read response headers and run its inspection scripts on that site.
@@ -41,6 +41,7 @@ Upload `dist/deepstack-v1.2.0.zip` (build it with `./scripts/build.sh`) in the
 
 ## Data usage
 
+- **Data types collected:** leave every box unchecked. Pages are analyzed on the device and nothing is sent to the developer. DNS lookups are opt-in and send only a domain name to a public resolver.
 - Check all three certification boxes. DeepStack does not collect, sell or transfer user data.
 - **Privacy policy URL:** `https://github.com/EmmanouelKontos/deepstack/blob/main/PRIVACY.md`
 - **Homepage / support URL:** `https://github.com/EmmanouelKontos/deepstack`

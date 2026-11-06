@@ -60,7 +60,7 @@ PRIVACY
 
 All analysis runs locally in your browser. DeepStack has no servers, no analytics and no accounts. It never reads cookie values, storage values or anything you type into forms.
 
-When you open the report, DeepStack can look up the site's public DNS records to identify its hosting and email providers. Only the domain name is sent, to a public DNS-over-HTTPS resolver. You can turn this off in the report's settings.
+Optionally, you can turn on DNS lookups in the report's settings to identify a site's hosting and email providers from its public DNS records. This is off by default. When on, only the domain name is sent, to a public DNS-over-HTTPS resolver.
 
 DeepStack is free and open source: https://github.com/EmmanouelKontos/deepstack
 ```
