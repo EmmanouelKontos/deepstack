@@ -6,8 +6,8 @@
 const SETTINGS_KEY = 'settings';
 
 export const DEFAULT_SETTINGS = Object.freeze({
-  /** Look up public DNS records (CNAME, MX, TXT) via DNS-over-HTTPS when the popup opens. */
-  dnsLookups: true
+  /** Opt-in: look up public DNS records (CNAME, MX, TXT) via DNS-over-HTTPS when the popup opens. */
+  dnsLookups: false
 });
 
 function normalize(raw) {

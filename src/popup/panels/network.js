@@ -23,7 +23,7 @@ function dnsCard(report) {
   if (!report.dnsLookupEnabled) {
     return sectionCard({
       title: 'DNS & hosting',
-      subtitle: 'DNS lookups are turned off.',
+      subtitle: 'Off by default. Turn on to identify hosting and email providers from public DNS records. Only the domain name is sent to a DNS-over-HTTPS resolver.',
       body: `<button class="btn btn-sm" type="button" data-action="enable-dns">Turn on DNS lookups</button>`
     });
   }

@@ -25,7 +25,7 @@ This is analyzed on your device. Per-tab header data is held in the browser's se
 
 Only when you open the popup:
 
-- **DNS lookup (can be turned off in Settings):** the site's domain name is sent to Cloudflare's public DNS-over-HTTPS resolver (`https://cloudflare-dns.com/dns-query`) to read public CNAME, A, MX and TXT records. No cookies, URL paths, query strings or identifiers are included.
+- **DNS lookup (off by default; you turn it on in Settings):** when enabled, the site's domain name is sent to Cloudflare's public DNS-over-HTTPS resolver (`https://cloudflare-dns.com/dns-query`) to read public CNAME, A, MX and TXT records. No cookies, URL paths, query strings or identifiers are included.
 - **Header fallback:** if the tab was opened before DeepStack was running, the extension sends one `HEAD` request to the page's own URL, without cookies, to read its response headers.
 
 Passive page loads never trigger either request.
